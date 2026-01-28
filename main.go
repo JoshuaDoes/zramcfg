@@ -39,27 +39,31 @@ func main() {
 	}
 
 	if enable || disable || size > 0 || compAlgo != "" {
+		fmt.Println("Disabling")
 		if err := zram.Disable(); err != nil {
 			fmt.Printf("Failed to disable ZRAM: %v\n", err)
 			os.Exit(6)
 		}
 	}
 
-	if size > 0 {
-		if err := zram.SetSizeBytes(size); err != nil {
-			fmt.Printf("Failed to set ZRAM size: %v\n", err)
-			os.Exit(7)
-		}
-	}
-
 	if compAlgo != "" {
+		fmt.Println("Setting compressor:", compAlgo)
 		if err := zram.SetCompAlgo(compAlgo); err != nil {
 			fmt.Printf("Failed to set ZRAM compression algorithm: %v\n", err)
 			os.Exit(8)
 		}
 	}
 
+	if size > 0 {
+		fmt.Println("Setting size:", size)
+		if err := zram.SetSizeBytes(size); err != nil {
+			fmt.Printf("Failed to set ZRAM size: %v\n", err)
+			os.Exit(7)
+		}
+	}
+
 	if enable || size > 0 || compAlgo != "" {
+		fmt.Println("Enabling")
 		if err := zram.Enable(); err != nil {
 			fmt.Printf("Failed to enable ZRAM: %v\n", err)
 			os.Exit(9)
@@ -134,6 +138,12 @@ func (zram *ZRAM) Enable() error {
 }
 func (zram *ZRAM) Disable() error {
 	_, _ = run("swapoff", zram.GetPathDevBlock())
+	return zram.Reset()
+}
+func (zram *ZRAM) Reset() error {
+	if err := os.WriteFile(zram.GetPathReset(), []byte("1"), 0644); err != nil {
+		return fmt.Errorf("zram: failed to reset zram device: %w", err)
+	}
 	return nil
 }
 
@@ -149,11 +159,11 @@ func (zram *ZRAM) GetSizeBytes() (int64, error) {
 	return size, nil
 }
 func (zram *ZRAM) SetSizeBytes(size int64) error {
-	if size <= 0 {
+	if size < 0 {
 		return fmt.Errorf("zram: invalid disk size")
 	}
-	if err := os.WriteFile(zram.GetPathReset(), []byte("1"), 0644); err != nil {
-		return fmt.Errorf("zram: failed to reset zram device: %w", err)
+	if size == 0 {
+		return nil
 	}
 	if err := os.WriteFile(zram.GetPathDiskSize(), []byte(fmt.Sprintf("%d", size)), 0644); err != nil {
 		return fmt.Errorf("zram: failed to set disk size: %w", err)
