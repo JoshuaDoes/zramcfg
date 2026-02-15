@@ -55,18 +55,18 @@ func (zram *ZRAM) Reset() error {
 	return nil
 }
 
-func (zram *ZRAM) GetSizeBytes() (int64, error) {
+func (zram *ZRAM) GetSizeBytes() (uint64, error) {
 	data, err := os.ReadFile(zram.GetPathDiskSize())
 	if err != nil {
 		return 0, fmt.Errorf("zram: failed to get disk size: %w", err)
 	}
-	var size int64
+	var size uint64
 	if _, err := fmt.Sscanf(string(data), "%d", &size); err != nil {
 		return 0, fmt.Errorf("zram: failed to parse disk size: %w", err)
 	}
 	return size, nil
 }
-func (zram *ZRAM) SetSizeBytes(size int64) error {
+func (zram *ZRAM) SetSizeBytes(size uint64) error {
 	if size < 0 {
 		return fmt.Errorf("zram: invalid disk size")
 	}

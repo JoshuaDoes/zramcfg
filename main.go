@@ -12,7 +12,7 @@ var (
 	block    = "zram0"
 	enable   bool
 	disable  bool
-	size     int64
+	size     uint64
 	compAlgo string
 )
 
@@ -21,7 +21,7 @@ func main() {
 	pflag.StringVarP(&block, "block", "b", block, "ZRAM block device to use")
 	pflag.BoolVarP(&enable, "enable", "e", false, "Enable ZRAM")
 	pflag.BoolVarP(&disable, "disable", "d", false, "Disable ZRAM")
-	pflag.Int64VarP(&size, "size", "s", 0, "ZRAM size in bytes")
+	pflag.Uint64VarP(&size, "size", "s", 0, "ZRAM size in bytes")
 	pflag.StringVarP(&compAlgo, "compalgo", "c", "", "Compression algorithm to use")
 	pflag.Parse()
 
